@@ -3,7 +3,9 @@
 """
 
 import numpy as np
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 from FBSNNs import FBSNN
 import matplotlib.pyplot as plt
 from plotting import newfig, savefig
@@ -48,15 +50,16 @@ if __name__ == "__main__":
                                   M, N, D,
                                   layers)
         
-    model.train(N_Iter = 2*10**4, learning_rate=1e-3)
-    model.train(N_Iter = 3*10**4, learning_rate=1e-4)
-    model.train(N_Iter = 3*10**4, learning_rate=1e-5)
-    model.train(N_Iter = 2*10**4, learning_rate=1e-6)
+    model.train(N_Iter = 10**3, learning_rate=1e-3)
+#    model.train(N_Iter = 3*10**4, learning_rate=1e-4)
+#    model.train(N_Iter = 3*10**4, learning_rate=1e-5)
+#    model.train(N_Iter = 2*10**4, learning_rate=1e-6)
     
     
+#    t_test, W_test = model.fetch_minibatch_no_noise()
     t_test, W_test = model.fetch_minibatch()
     
-    X_pred, Y_pred = model.predict(Xi, t_test, W_test)
+    X_pred, Y_pred, Z_pred = model.predict(Xi, t_test, W_test)
     
     def g(X): # MC x NC x D
         return np.log(0.5 + 0.5*np.sum(X**2, axis=2, keepdims=True)) # MC x N x 1
@@ -73,7 +76,7 @@ if __name__ == "__main__":
     
     Y_test_terminal = np.log(0.5 + 0.5*np.sum(X_pred[:,-1,:]**2, axis=1, keepdims=True))
     
-    plt.figure()
+    plt.figure(1)
     plt.plot(t_test[0:1,:,0].T,Y_pred[0:1,:,0].T,'b',label='Learned $u(t,X_t)$')
     #plt.plot(t_test[1:5,:,0].T,Y_pred[1:5,:,0].T,'b')
     plt.plot(t_test[0,:,0].T,Y_test[:,0].T,'r--',label='Exact $u(t,X_t)$')
@@ -84,16 +87,26 @@ if __name__ == "__main__":
     plt.ylabel('$Y_t = u(t,X_t)$')
     plt.title('100-dimensional Hamilton-Jacobi-Bellman')
     plt.legend()
+    plt.show()
     
-    # savefig('./figures/HJB_Apr18_50', crop = False)
+#    savefig('./figures/HJB_new', crop = False)
+    
+    plt.figure(2)
+    plt.plot(t_test[0:1,:,0].T,Z_pred[0:1,:,0].T,'b',label='Learned $Du(t,X_t)$')
+    plt.xlabel('$t$')
+    plt.ylabel('$Z_t = Du(t,X_t)$')
+    plt.title('100-dimensional Hamilton-Jacobi-Bellman')
+    plt.legend()
+    plt.show()
     
     errors = np.sqrt((Y_test-Y_pred[0,:,:])**2/Y_test**2)
     
-    plt.figure()
+    plt.figure(3)
     plt.plot(t_test[0,:,0],errors,'b')
     plt.xlabel('$t$')
     plt.ylabel('relative error')
     plt.title('100-dimensional Hamilton-Jacobi-Bellman')
     # plt.legend()
+    plt.show()
     
-    # savefig('./figures/HJB_Apr18_50_errors', crop = False)
+#    savefig('./figures/HJB_new_errors', crop = False)
